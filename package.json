@@ -1,7 +1,10 @@
 {
   "name": "wrdu-graphql",
   "version": "1.0.1",
-  "repository": "waradu/graphql",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/waradu/graphql.git"
+  },
   "homepage": "https://waradu.dev",
   "license": "MIT",
   "module": "index.ts",
