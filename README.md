@@ -109,7 +109,7 @@ Query:
 const builder = new GraphQL("url", [
   field("Animal").children([
     field("id"),
-    field("type", "animalType"),
+    field("type"),
     field("name"),
     field("age"),
   ]),
@@ -125,7 +125,7 @@ Mutation:
 const builder = new GraphQL("url", [
   field("createAnimal").children([
     field("id"),
-    field("type", "animalType"),
+    field("type"),
     field("name"),
     field("age"),
   ]).params([
