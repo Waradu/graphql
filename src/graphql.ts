@@ -1,3 +1,4 @@
+import type { RequestType, Value } from "./types";
 import { indent } from "./utils";
 
 export class GraphQL {
@@ -7,16 +8,47 @@ export class GraphQL {
     this.root = root;
   }
 
-  string(): string {
+  async query(url: string) {
+    return await this.get(url, "query");
+  }
+
+  async mutate(url: string) {
+    return await this.get(url, "mutation");
+  }
+
+  string(requestType: RequestType): string {
     let string = "";
 
-    string += "query {\n";
+    string += requestType;
+
+    string += " {\n";
 
     string += this.root.string(1);
 
     string += "}";
 
     return string;
+  }
+
+  private async get(url: string, requestType: RequestType) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: this.string(requestType) }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.errors) {
+        throw new Error(result.errors?.[0]?.message || "GraphQL Error");
+      }
+
+      return result.data;
+    } catch (error: any) {
+      console.error("Fetch GraphQL Error:", error.message);
+      throw error;
+    }
   }
 }
 
@@ -90,10 +122,6 @@ export class GQLNodeParam {
       return `{${Object.entries(value)
         .map(([key, val]) => `${key}: ${this.stringify(val)}`)
         .join(", ")}}`;
-    }
-
-    if (typeof value === "string") {
-      return `"${value}"`;
     }
 
     return String(value);
