@@ -2,10 +2,10 @@ import type { RequestType, Value } from "./types";
 import { indent } from "./utils";
 
 export class GraphQL {
-  private root;
+  private children: GQLNode[];
 
-  constructor(root: GQLNode) {
-    this.root = root;
+  constructor(children: GQLNode[]) {
+    this.children = children;
   }
 
   async query(url: string) {
@@ -23,7 +23,7 @@ export class GraphQL {
 
     string += " {\n";
 
-    string += this.root.string(1);
+    string += this.children.map((c) => c.string(1)).join("");
 
     string += "}";
 
