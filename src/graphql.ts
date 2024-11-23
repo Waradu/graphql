@@ -2,26 +2,30 @@ import type { RequestType, Value } from "./types";
 import { indent } from "./utils";
 
 export class GraphQL {
-  private children: GQLNode[];
+  private children: GQLField[];
+  private url: string;
 
-  constructor(children: GQLNode[]) {
+  constructor(url: string, children: GQLField[]) {
+    this.url = url;
     this.children = children;
   }
 
-  async query(url: string) {
-    return await this.get(url, "query");
+  async get() {
+    return await this.fetch("query");
   }
 
-  async mutate(url: string) {
-    return await this.get(url, "mutation");
+  async mutate() {
+    return await this.fetch("mutation");
   }
 
-  string(requestType: RequestType): string {
+  string(requestType?: RequestType): string {
     let string = "";
 
-    string += requestType;
+    if (requestType) {
+      string += requestType + " ";
+    }
 
-    string += " {\n";
+    string += "{\n";
 
     string += this.children.map((c) => c.string(1)).join("");
 
@@ -30,12 +34,12 @@ export class GraphQL {
     return string;
   }
 
-  private async get(url: string, requestType: RequestType) {
+  private async fetch<T>(requestType: RequestType) {
     try {
-      const response = await fetch(url, {
+      const response = await fetch(this.url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: this.string(requestType) }),
+        body: JSON.stringify({ query: requestType + " " + this.string() }),
       });
 
       const result = await response.json();
@@ -44,7 +48,7 @@ export class GraphQL {
         throw new Error(result.errors?.[0]?.message || "GraphQL Error");
       }
 
-      return result.data;
+      return result.data as T;
     } catch (error: any) {
       console.error("Fetch GraphQL Error:", error.message);
       throw error;
@@ -52,23 +56,23 @@ export class GraphQL {
   }
 }
 
-export class GQLNode {
+export class GQLField {
   private name: string;
   private label: string | null;
-  private paramList: GQLNodeParam[] = [];
-  private childrenList: GQLNode[] = [];
+  private paramList: GQLParam[] = [];
+  private childrenList: GQLField[] = [];
 
   constructor(name: string, label?: string) {
     this.name = name;
     this.label = label ?? null;
   }
 
-  children(children: GQLNode[]) {
+  children(children: GQLField[]) {
     this.childrenList = children;
     return this;
   }
 
-  params(params: GQLNodeParam[]) {
+  params(params: GQLParam[]) {
     this.paramList = params;
     return this;
   }
@@ -104,7 +108,7 @@ export class GQLNode {
   }
 }
 
-export class GQLNodeParam {
+export class GQLParam {
   private name: string;
   private value: Value;
 

@@ -1,4 +1,4 @@
 import { GraphQL } from "./src/graphql";
-import { node, param } from "./src/utils";
+import { field, param } from "./src/utils";
 
-export { GraphQL, node, param };
+export { GraphQL, field, param };
