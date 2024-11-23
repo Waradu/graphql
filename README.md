@@ -115,7 +115,7 @@ const builder = new GraphQL("url", [
   ]),
 ]);
 
-await builder.get();
+await builder.get<T>();
 ```
 
 <br>
@@ -135,7 +135,7 @@ const builder = new GraphQL("url", [
   ]),
 ]);
 
-await builder.mutate();
+await builder.mutate<T>();
 ```
 
 <br>

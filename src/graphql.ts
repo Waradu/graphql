@@ -10,12 +10,12 @@ export class GraphQL {
     this.children = children;
   }
 
-  async get() {
-    return await this.fetch("query");
+  async get<T>() {
+    return await this.fetch<T>("query");
   }
 
-  async mutate() {
-    return await this.fetch("mutation");
+  async mutate<T>() {
+    return await this.fetch<T>("mutation");
   }
 
   string(requestType?: RequestType): string {
