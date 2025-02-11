@@ -2,11 +2,35 @@ import type { RequestType, Value } from "./types";
 import { indent } from "./utils";
 
 export class GraphQL {
+  private query: GQLQuery;
+  private fragments: GQLFragment[];
+
+  constructor(query: GQLQuery, fragments?: GQLFragment[]) {
+    this.query = query;
+    this.fragments = fragments ?? [];
+  }
+
+  string() {
+    let string = "";
+
+    string += this.query.string();
+
+    string += "\n\n";
+
+    string += this.fragments.map((c) => c.string()).join("\n\n");
+
+    return string;
+  }
+}
+
+export class GQLQuery {
   private children: GQLField[];
   private url: string;
+  private type: RequestType;
 
-  constructor(url: string, children: GQLField[]) {
+  constructor(url: string, children: GQLField[] = [], type: RequestType = "query") {
     this.url = url;
+    this.type = type;
     this.children = children;
   }
 
@@ -18,12 +42,8 @@ export class GraphQL {
     return await this.fetch<T>("mutation");
   }
 
-  string(requestType?: RequestType): string {
-    let string = "";
-
-    if (requestType) {
-      string += requestType + " ";
-    }
+  string(): string {
+    let string = `${this.type} `;
 
     string += "{\n";
 
@@ -53,6 +73,30 @@ export class GraphQL {
       console.error("Fetch GraphQL Error:", error.message);
       throw error;
     }
+  }
+}
+
+export class GQLFragment {
+  private children: GQLField[];
+  private on: string;
+  private name: string;
+
+  constructor(name: string, on: string, children: GQLField[]) {
+    this.name = name;
+    this.on = on;
+    this.children = children;
+  }
+
+  string(): string {
+    let string = `fragment ${this.name} on ${this.on} `;
+
+    string += "{\n";
+
+    string += this.children.map((c) => c.string(1)).join("");
+
+    string += "}";
+
+    return string;
   }
 }
 
