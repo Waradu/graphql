@@ -25,25 +25,29 @@ export class GraphQL {
 
 export class GQLQuery {
   private children: GQLField[];
-  private url: string;
   private type: RequestType;
+  private varaibleList: GQLParam[] = [];
+  private variableName: string | undefined = undefined;
 
-  constructor(url: string, children: GQLField[] = [], type: RequestType = "query") {
-    this.url = url;
+  constructor(children: GQLField[] = [], type: RequestType = "query") {
     this.type = type;
     this.children = children;
   }
 
-  async get<T>() {
-    return await this.fetch<T>("query");
-  }
-
-  async mutate<T>() {
-    return await this.fetch<T>("mutation");
+  variables(name: string, varaibles: GQLParam[]) {
+    this.variableName = name;
+    this.varaibleList = varaibles;
+    return this;
   }
 
   string(): string {
     let string = `${this.type} `;
+
+    if (this.variableName != undefined) {
+      string += this.variableName + "(";
+      string += this.varaibleList.map((v) => v.string()).join(", ");
+      string += ") ";
+    }
 
     string += "{\n";
 
@@ -52,27 +56,6 @@ export class GQLQuery {
     string += "}";
 
     return string;
-  }
-
-  private async fetch<T>(requestType: RequestType) {
-    try {
-      const response = await fetch(this.url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: requestType + " " + this.string() }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || result.errors) {
-        throw new Error(result.errors?.[0]?.message || "GraphQL Error");
-      }
-
-      return result.data as T;
-    } catch (error: any) {
-      console.error("Fetch GraphQL Error:", error.message);
-      throw error;
-    }
   }
 }
 

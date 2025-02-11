@@ -5,8 +5,8 @@ export function indent(level: number) {
   return "  ".repeat(level);
 }
 
-export function query(url: string, children: GQLField[], type: RequestType = "query") {
-  return new GQLQuery(url, children, type);
+export function query(children: GQLField[], type: RequestType = "query") {
+  return new GQLQuery(children, type);
 }
 
 export function fragment(name: string, on: string, children: GQLField[]) {
@@ -26,4 +26,11 @@ export function param(
 ): GQLParam {
   if (string) return new GQLParam(name, '"' + value + '"');
   return new GQLParam(name, value);
+}
+
+export function variable(
+  name: string,
+  type: string,
+): GQLParam {
+  return new GQLParam(name, type);
 }
