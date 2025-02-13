@@ -11,16 +11,17 @@ bun install wrdu-graphql
 **Basic:**
 
 ```ts
-const builder = new GraphQL("url", [
-  field("Animal").children([
-    field("id"),
-    field("type"),
-    field("name"),
-    field("age"),
-  ]),
-]);
-
-builder.string("query");
+const gql = new GraphQL(
+  query([
+    field("Animal").children([
+      field("id"),
+      field("type"),
+      field("name"),
+      field("age"),
+      field("owner").children([field("name")]),
+    ]),
+  ])
+);
 ```
 
 ```graphql
@@ -31,6 +32,9 @@ query {
     type
     name
     age
+    owner {
+      name
+    }
   }
 }
 ```
@@ -40,18 +44,18 @@ query {
 **Params:**
 
 ```ts
-const builder = new GraphQL("url", [
-  field("Animal").children([
-    field("id"),
-    field("type"),
-    field("name"),
-    field("age").params([
-      param("in", "SECONDS")
-    ]),
-  ]).params([param("search", "dog", true)]),
-]);
-
-builder.string("query");
+const gql = new GraphQL(
+  query([
+    field("Animal")
+      .children([
+        field("id"),
+        field("type"),
+        field("name"),
+        field("age").params([param("in", "SECONDS")]),
+      ])
+      .params([param("search", "dog", true)]),
+  ])
+);
 ```
 
 ```graphql
@@ -65,10 +69,11 @@ query {
   }
 }
 ```
+
 ```ts
 // true at the end means that "dog" should be treated as a string
-param("search", "dog", true) // Animal(search: "dog")
-param("search", "dog") // Animal(search: dog)
+param("search", "dog", true); // Animal(search: "dog")
+param("search", "dog"); // Animal(search: dog)
 ```
 
 <br>
@@ -76,16 +81,16 @@ param("search", "dog") // Animal(search: dog)
 **Labels:**
 
 ```ts
-const builder = new GraphQL("url", [
-  field("Animal").children([
-    field("id"),
-    field("type", "animalType"),
-    field("name"),
-    field("age"),
-  ]),
-]);
-
-builder.string("query");
+const gql = new GraphQL(
+  query([
+    field("Animal").children([
+      field("id"),
+      field("type", "animalType"),
+      field("name"),
+      field("age"),
+    ]),
+  ])
+);
 ```
 
 ```graphql
@@ -102,40 +107,79 @@ query {
 
 <br>
 
-**Request:**
+**Fragments:**
 
 Query:
-```ts
-const builder = new GraphQL("url", [
-  field("Animal").children([
-    field("id"),
-    field("type"),
-    field("name"),
-    field("age"),
-  ]),
-]);
 
-await builder.get<T>();
+```ts
+const gql = new GraphQL(
+  query([field("Animal").children([field("...AnimalFields")])]),
+  [
+    fragment("AnimalFields", "Animal", [
+      field("id"),
+      field("type"),
+      field("name"),
+      field("age"),
+    ]),
+  ]
+);
+```
+
+```graphql
+# Result
+query {
+  Animal {
+    ...AnimalFields
+  }
+}
+
+fragment AnimalFields on Animal {
+  id
+  type
+  name
+  age
+}
 ```
 
 <br>
 
-Mutation:
-```ts
-const builder = new GraphQL("url", [
-  field("createAnimal").children([
-    field("id"),
-    field("type"),
-    field("name"),
-    field("age"),
-  ]).params([
-    param("name", "Biscuit", true),
-    param("age", 2),
-    param("type", "DOG"),
-  ]),
-]);
+**Directives:**
 
-await builder.mutate<T>();
+Query:
+
+```ts
+const gql = new GraphQL(
+  query([
+    field("Animal").children([
+      field("id"),
+      field("type"),
+      field("name"),
+      field("age"),
+      field("owner").children([
+        field("name")
+      ]),
+    ]).params([
+      param("name", "$name")
+    ]),
+  ]).directives("AnimalSearch", [
+    param("$name", "String")
+  ])
+);
+```
+
+```graphql
+# Result
+query AnimalSearch($name: String) {
+  Animal(name: $name) {
+    id
+    type
+    name
+    age
+    owner {
+      name
+    }
+  }
+}
 ```
 
 <br>

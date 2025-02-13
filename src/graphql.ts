@@ -25,23 +25,28 @@ export class GraphQL {
 
 export class GQLQuery {
   private children: GQLField[];
-  private type: RequestType;
+  private queryType: RequestType = "query";
   private varaibleList: GQLParam[] = [];
   private variableName: string | undefined = undefined;
 
   constructor(children: GQLField[] = [], type: RequestType = "query") {
-    this.type = type;
     this.children = children;
+    this.queryType = type;
   }
 
-  variables(name: string, varaibles: GQLParam[]) {
+  directives(name: string, varaibles: GQLParam[]) {
     this.variableName = name;
     this.varaibleList = varaibles;
     return this;
   }
 
+  type(type: RequestType) {
+    this.queryType = type;
+    return this;
+  }
+
   string(): string {
-    let string = `${this.type} `;
+    let string = `${this.queryType} `;
 
     if (this.variableName != undefined) {
       string += this.variableName + "(";
